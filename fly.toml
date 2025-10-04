@@ -1,35 +1,26 @@
-app = "mautrix-meta-instagram"
-primary_region = "iad"
+# fly.toml app configuration file generated for mautrix-meta-instagram on 2025-10-04T14:17:11+02:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'mautrix-meta-instagram'
+primary_region = 'iad'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  UID = "1337"
-  GID = "1337"
+  GID = '1337'
+  UID = '1337'
 
-[mounts]
-  source = "mautrix_meta_data"
-  destination = "/data"
-
-[[services]]
+[http_service]
   internal_port = 29319
-  protocol = "tcp"
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
-
-  [services.concurrency]
-    hard_limit = 25
-    soft_limit = 20
-    type = "connections"
-
-  [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "10s"
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  cpus = 1
