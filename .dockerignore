@@ -1,5 +1,11 @@
 data/
-.git/
+.git
+!meta/.git
 *.md
+!meta/**/*.md
 docker-compose.yml
 .DS_Store
+fly.toml.backup
+DEPLOY_INSTRUCTIONS.md
+SETUP.md
+FLY_DEPLOYMENT.md
