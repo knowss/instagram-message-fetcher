@@ -1,0 +1,47 @@
+# Configuration file for Synapse.
+#
+# This is a YAML file: see [1] for a quick introduction. Note in particular
+# that *indentation is important*: all the elements of a list or dictionary
+# should have the same indentation.
+#
+# [1] https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html
+#
+# For more information on how to configure Synapse, including a complete accounting of
+# each option, go to docs/usage/configuration/config_documentation.md or
+# https://element-hq.github.io/synapse/latest/usage/configuration/config_documentation.html
+server_name: "localhost"
+pid_file: /data/homeserver.pid
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+database:
+  name: sqlite3
+  args:
+    database: /data/homeserver.db
+log_config: "/data/localhost.log.config"
+media_store_path: /data/media_store
+registration_shared_secret: "P8J9N5UKQ9dIYZB*W+3A9*vcRrN_-ZyBalw&tKE6w9ta:9~doQ"
+report_stats: false
+macaroon_secret_key: "@B0@AW^aZ6.7H-^siuf58mCw:uCKpDPK-.oCA4I&y0qTtOyxAj"
+form_secret: "HLXdk5G^-DZAb0PA9f5gy#SaKEqid@+p_^C3Fv4+0ln=nlyjfN"
+signing_key_path: "/data/localhost.signing.key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+
+# vim:ft=yaml
+# Allow registration without email
+enable_registration: true
+enable_registration_without_verification: true
+
+# Trust all proxy headers (for local testing)
+trusted_key_servers: []
+
+# App service registration files
+app_service_config_files:
+  - /data/mautrix-meta-registration.yaml

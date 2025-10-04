@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+  postgres:
+    container_name: synapse-db
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: synapse_password
+      POSTGRES_DB: synapse
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - matrix-network
+
+  synapse:
+    container_name: synapse
+    image: matrixdotorg/synapse:latest
+    restart: unless-stopped
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./synapse-data:/data
+    environment:
+      SYNAPSE_SERVER_NAME: localhost
+      SYNAPSE_REPORT_STATS: "no"
+    depends_on:
+      - postgres
+    networks:
+      - matrix-network
+
+  mautrix-meta:
+    container_name: mautrix-meta
+    image: dock.mau.dev/mautrix/meta:latest
+    restart: unless-stopped
+    volumes:
+      - ./bridge-data:/data
+    depends_on:
+      - synapse
+    networks:
+      - matrix-network
+
+networks:
+  matrix-network:
+    driver: bridge

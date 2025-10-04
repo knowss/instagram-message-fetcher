@@ -1,0 +1,14 @@
+id: meta
+url: http://mautrix-meta:29319
+as_token: OVM62jLTM58XVzDmqy8SQJoB2rZHvadKMBe33aNS8qJa3b9VRdW5AuDh5wiXPo4i
+hs_token: nKuC13ghphZhjRNZU9ND1OcIOAQebC7lU4fGUGL7WHfaxYhS3Dik0XrgxE91RpEd
+sender_localpart: RHtwO9VblhtooQQu22AlpHotGWam92K5
+rate_limited: false
+namespaces:
+    users:
+        - regex: ^@metabot:localhost$
+          exclusive: true
+        - regex: ^@instagram_.*:localhost$
+          exclusive: true
+de.sorunome.msc2409.push_ephemeral: true
+receive_ephemeral: true

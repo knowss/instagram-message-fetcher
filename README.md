@@ -1,280 +1,163 @@
-# Instagram Message History Fetcher
+# Instagram DM Bridge - Complete Setup
 
-A Docker-based Instagram DM bridge that fetches and syncs your Instagram message history using the [mautrix-meta](https://github.com/mautrix/meta) bridge protocol.
+A complete Docker setup to access Instagram DMs through Matrix protocol using mautrix-meta bridge.
 
-## Features
+## 🎯 What This Does
 
-✅ Fetch complete Instagram DM history
-✅ Real-time message sync
-✅ Uses official Instagram protocol via mautrix-meta
-✅ Deploy to Fly.io with one click
-✅ Auto-deploy via GitHub Actions
+- **Syncs Instagram DMs** to Matrix
+- **Complete message history** fetching
+- **Real-time messaging** between Instagram and Matrix
+- **Works with username/password** login via browser cookies
 
-## Quick Deploy to Fly.io
+## 📋 Requirements
 
-### 1. Prerequisites
+- Docker & Docker Compose
+- That's it!
 
-- [Fly.io account](https://fly.io/app/sign-up) (free tier available)
-- [Matrix homeserver](https://matrix.org/docs/guides/installing-synapse) (Synapse, Dendrite, etc.)
-- Instagram account
+## 🚀 Quick Start (Local Testing)
 
-### 2. Fork this Repository
-
-Click the "Fork" button at the top of this page.
-
-### 3. Set up Fly.io
-
-Install flyctl:
-```bash
-# macOS
-brew install flyctl
-
-# Linux
-curl -L https://fly.io/install.sh | sh
-
-# Windows
-powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
-```
-
-Login and get your API token:
-```bash
-flyctl auth login
-flyctl auth token
-```
-
-### 4. Create Fly.io App
+### 1. Start the Complete Stack
 
 ```bash
-flyctl apps create mautrix-meta-instagram
-flyctl volumes create mautrix_meta_data --region iad --size 1 --app mautrix-meta-instagram
+cd matrix-stack
+./setup.sh
 ```
 
-### 5. Add Secrets to GitHub
+This starts:
+- ✅ Synapse (Matrix homeserver)
+- ✅ PostgreSQL (database)
+- ✅ mautrix-meta (Instagram bridge)
 
-Go to your forked repository → Settings → Secrets and variables → Actions → New repository secret
+### 2. Create Matrix Account
 
-Add:
-- **Name**: `FLY_API_TOKEN`
-- **Value**: (paste the token from step 3)
+Go to https://app.element.io
 
-### 6. Deploy
+- Click "Sign In"
+- Click "Edit" next to homeserver
+- Enter: `http://localhost:8008`
+- Click "Create Account"
+- Username: `admin`
+- Password: (your choice)
 
-Push to main branch or manually trigger:
-- Go to Actions tab
-- Click "Deploy to Fly.io"
-- Click "Run workflow"
+### 3. Login to Instagram
 
-The app will auto-deploy on every push to `main`.
+In Element:
+1. Click "Start Chat"
+2. Enter: `@metabot:localhost`
+3. Send: `login`
+4. Open Instagram in browser (private window)
+5. Open DevTools (F12) → Network → XHR
+6. Login to Instagram
+7. Find a "graphql" request
+8. Right-click → Copy → Copy as cURL
+9. Paste into Matrix chat with @metabot
+10. ✅ Instagram DMs will sync!
 
-## Configuration
+## 🌐 Deploy to Production (Fly.io)
 
-### First Time Setup
+The bridge is already deployed at Fly.io, but you need your own Matrix homeserver.
 
-1. SSH into your Fly.io container:
-```bash
-flyctl ssh console -a mautrix-meta-instagram
+### Option A: Use matrix-stack locally, bridge on Fly.io
+
+1. Keep matrix-stack running locally
+2. Update Fly.io bridge to connect to your public IP/domain
+3. Use ngrok or similar to expose local Synapse
+
+### Option B: Deploy everything to Fly.io
+
+Deploy both Synapse and bridge to Fly.io (requires more setup)
+
+## 📁 Project Structure
+
+```
+.
+├── matrix-stack/          # Local Docker setup
+│   ├── docker-compose.yml # Synapse + PostgreSQL + Bridge
+│   ├── setup.sh          # Automated setup script
+│   └── README.md         # Local setup guide
+│
+├── fly.toml              # Fly.io bridge deployment
+├── meta/                 # mautrix-meta source (submodule)
+└── README.md            # This file
 ```
 
-2. Edit the config:
-```bash
-vi /data/config.yaml
+## 🔧 How It Works
+
+```
+Instagram ←→ mautrix-meta ←→ Synapse ←→ Element
+              (bridge)      (Matrix)    (you)
 ```
 
-3. Set Instagram mode:
-```yaml
-meta:
-  mode: instagram
-```
+1. **You** use Element (Matrix client)
+2. **Element** connects to Synapse (Matrix homeserver)
+3. **Synapse** routes messages to mautrix-meta (bridge)
+4. **mautrix-meta** connects to Instagram
+5. Messages flow bidirectionally
 
-4. Configure your Matrix homeserver:
-```yaml
-homeserver:
-  address: https://matrix.yourdomain.com
-  domain: yourdomain.com
-```
+## 📱 What You Can Do
 
-5. Set permissions (replace with your Matrix user ID):
-```yaml
-bridge:
-  permissions:
-    "@yourusername:yourdomain.com": admin
-```
+- ✅ Read all Instagram DMs in Matrix
+- ✅ Send Instagram DMs from Matrix
+- ✅ Complete message history sync
+- ✅ Real-time notifications
+- ✅ Media attachments
+- ✅ Reactions (limited)
 
-6. Save and exit, then restart:
-```bash
-exit
-flyctl apps restart mautrix-meta-instagram
-```
+## 🔐 Authentication
 
-### Get Registration File
+The bridge uses Instagram's web protocol:
+- Login via browser
+- Copy network request as cURL
+- Paste to bridge
+- No username/password stored
+- Uses session cookies only
 
-```bash
-flyctl ssh console -a mautrix-meta-instagram
-cat /data/registration.yaml
-```
-
-Add this to your Matrix homeserver config (`homeserver.yaml` for Synapse):
-```yaml
-app_service_config_files:
-  - /path/to/mautrix-meta-registration.yaml
-```
-
-Restart your Matrix homeserver.
-
-## Usage - Fetch Instagram Messages
-
-### 1. Start Chat with Bridge Bot
-
-On Matrix, message: `@metabot:yourdomain.com`
-
-### 2. Login to Instagram
-
-Send: `login`
-
-The bot will ask for Instagram cookies.
-
-### 3. Get Instagram Cookies
-
-**Option A: Browser DevTools (Chrome/Firefox)**
-
-1. Go to https://instagram.com and login
-2. Press F12 to open DevTools
-3. Go to: Application → Cookies → https://instagram.com
-4. Copy these cookies:
-   - `sessionid`
-   - `ds_user_id`
-   - `csrftoken`
-
-**Option B: cURL from DevTools**
-
-1. Go to instagram.com and login
-2. Open DevTools (F12) → Network tab
-3. Refresh page, right-click any request → Copy → Copy as cURL
-4. Paste the entire cURL command to the bot
-
-### 4. Send Cookies
-
-Format as JSON:
-```json
-{
-  "sessionid": "your_session_id",
-  "ds_user_id": "your_user_id",
-  "csrftoken": "your_csrf_token"
-}
-```
-
-Or paste the cURL command directly.
-
-### 5. Fetch Message History
-
-The bridge will automatically:
-- Connect to Instagram
-- Create Matrix rooms for each DM conversation
-- Sync complete message history (all past messages)
-- Keep messages in sync in real-time
-
-You'll see all your Instagram DMs appear as Matrix chats!
-
-## Monitoring
-
-### View Logs
-```bash
-flyctl logs -a mautrix-meta-instagram
-```
-
-### Check Status
-```bash
-flyctl status -a mautrix-meta-instagram
-```
-
-### SSH Access
-```bash
-flyctl ssh console -a mautrix-meta-instagram
-```
-
-## Local Development
-
-### With Docker Compose
+## 📊 View Logs
 
 ```bash
-docker-compose up -d
+cd matrix-stack
+docker-compose logs -f mautrix-meta
 ```
 
-Data stored in `./data/`
-
-### Manual Docker Build
+## 🛑 Stop Everything
 
 ```bash
-docker build -t mautrix-meta .
-docker run -v $(pwd)/data:/data -p 29319:29319 mautrix-meta
+cd matrix-stack
+docker-compose down
 ```
 
-## Troubleshooting
+## 🔄 Reset & Start Over
 
-### Bridge won't connect
-- Check logs: `flyctl logs`
-- Verify config.yaml has `mode: instagram`
-- Ensure Matrix homeserver has registration file
-- Restart homeserver after adding registration
-
-### Cookies expired
-- Instagram cookies expire after ~90 days
-- Re-run `login` command to refresh
-
-### Missing messages
-- The bridge syncs all history on first login
-- Check Matrix rooms created by the bridge
-- Some DMs may be in different room formats (groups vs 1-on-1)
-
-### Reset Everything
 ```bash
-flyctl volumes delete mautrix_meta_data -a mautrix-meta-instagram
-flyctl volumes create mautrix_meta_data --region iad --size 1 -a mautrix-meta-instagram
-flyctl deploy
+cd matrix-stack
+docker-compose down -v
+rm -rf synapse-data bridge-data postgres-data
+./setup.sh
 ```
 
-## Architecture
+## 📚 Documentation
 
-```
-Instagram ←→ mautrix-meta (Fly.io) ←→ Matrix Homeserver ←→ Matrix Client
-```
+- [mautrix-meta docs](https://docs.mau.fi/bridges/go/meta/)
+- [Matrix docs](https://matrix.org/docs/guides/)
+- [Element](https://element.io)
 
-The bridge:
-1. Authenticates with Instagram using cookies
-2. Maintains connection to Instagram's messaging protocol
-3. Translates Instagram messages to/from Matrix protocol
-4. Syncs all message history and real-time updates
+## 🎯 Next Steps
 
-## Costs
+1. **For local testing**: Use `matrix-stack/`
+2. **For production**: Deploy Synapse to a server with public domain
+3. **GitHub repo**: Push to GitHub for CI/CD (already configured)
+4. **Fly.io**: Bridge deployment ready at `mautrix-meta-instagram.fly.dev`
 
-**Fly.io Free Tier includes:**
-- 3 shared-cpu-1x VMs with 256MB RAM
-- 3GB persistent volume storage
-- 160GB outbound data transfer
+## 💡 Tips
 
-**This setup costs:**
-- ~$0.15/month for 1GB volume (within free tier if you have volume credits)
+- Use Instagram account without 2FA for easier login
+- Keep Element open for real-time sync
+- Instagram may rate-limit on first sync (be patient)
+- Check bridge logs if messages don't appear
 
-## Security
+## ⚠️ Important
 
-⚠️ **Important:**
-- Keep your `config.yaml` and cookies secure
-- Use 2FA on Instagram account
-- Don't share your API tokens
-- Use HTTPS for Matrix homeserver
-
-## Credits
-
-Built with:
-- [mautrix-meta](https://github.com/mautrix/meta) - Matrix bridge for Instagram/Facebook
-- [messagix](https://github.com/0xzer/messagix) - Instagram/Facebook protocol implementation
-
-## License
-
-This deployment setup is provided as-is. The mautrix-meta project has its own license (AGPL-3.0).
-
-## Support
-
-- Bridge issues: https://github.com/mautrix/meta/issues
-- Matrix room: [#meta:maunium.net](https://matrix.to/#/#meta:maunium.net)
-- Fly.io docs: https://fly.io/docs/
+- This bridges Instagram to Matrix (not a standalone client)
+- Requires Matrix homeserver (Synapse)
+- Uses Instagram's unofficial protocol
+- Instagram may require verification on new logins
