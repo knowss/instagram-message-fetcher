@@ -2,8 +2,9 @@ FROM golang:1-alpine3.22 AS builder
 
 RUN apk add --no-cache git ca-certificates build-base su-exec olm-dev
 
-COPY meta /build
 WORKDIR /build
+RUN git clone https://github.com/mautrix/meta.git . && \
+    git checkout $(git describe --tags --abbrev=0 2>/dev/null || echo "main")
 RUN ./build.sh
 
 FROM alpine:3.22
