@@ -1,38 +1,35 @@
-[app]
 app = "mautrix-meta-instagram"
 primary_region = "iad"
 
 [build]
-dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
-UID = "1337"
-GID = "1337"
+  UID = "1337"
+  GID = "1337"
 
 [mounts]
-source = "mautrix_meta_data"
-destination = "/data"
-initial_size = "1gb"
+  source = "mautrix_meta_data"
+  destination = "/data"
 
 [[services]]
-internal_port = 29319
-protocol = "tcp"
+  internal_port = 29319
+  protocol = "tcp"
 
-[[services.ports]]
-handlers = ["http"]
-port = 80
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
 
-[[services.ports]]
-handlers = ["tls", "http"]
-port = 443
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
 
-[services.concurrency]
-hard_limit = 25
-soft_limit = 20
-type = "connections"
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
 
-[[services.tcp_checks]]
-interval = "15s"
-timeout = "2s"
-grace_period = "10s"
-restart_limit = 0
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
